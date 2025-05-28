@@ -24,11 +24,15 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Permite o acesso ao Swagger e seus endpoints
-                        .requestMatchers("/swagger-ui/**", "/swagger-resources/**", "/v3/api-docs/**").permitAll()
-                        // Permite o acesso a rotas de autenticação
-                        .requestMatchers("/api/auth/**").permitAll()
-                        // Requer autenticação para qualquer outra requisição
+                        .requestMatchers(
+                                "/api/auth/**",           // Login, registro
+                                "/swagger-ui/**",         // Swagger interface
+                                "/swagger-ui.html",       // Página principal
+                                "/v3/api-docs/**",        // OpenAPI JSON
+                                "/webjars/**",            // Recursos estáticos do Swagger
+                                "/swagger-resources/**",  // Recursos do Swagger
+                                "/configuration/**"       // Configuração do Swagger
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

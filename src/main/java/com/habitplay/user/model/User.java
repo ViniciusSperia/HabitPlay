@@ -39,10 +39,6 @@ public class User implements UserDetails {
     private String email;
 
     @NotBlank
-    @Pattern(
-            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,32}$",
-            message = "A senha deve conter entre 8 e 32 caracteres, com pelo menos uma letra maiúscula, uma minúscula, um número e um símbolo (incluindo , ou .)"
-    )
     @Column(name = "password", nullable = false, length = 100)
     private String password;
 
