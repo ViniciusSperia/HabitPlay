@@ -44,7 +44,6 @@ public class UserController {
     }
 
     // ADMIN ONLY
-
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponse>> listAll() {
