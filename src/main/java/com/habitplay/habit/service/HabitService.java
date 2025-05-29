@@ -11,4 +11,7 @@ public interface HabitService {
     List<HabitResponse> listByUser();
     HabitResponse update(UUID id, HabitRequest request);
     void softDelete(UUID id);
+    void incrementProgress(UUID id);
+    void markAsCompleted(UUID id);
+
 }

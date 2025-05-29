@@ -1,5 +1,6 @@
 package com.habitplay.habit.service.impl;
 
+import com.habitplay.config.exception.HabitNotFoundException;
 import com.habitplay.habit.dto.request.HabitRequest;
 import com.habitplay.habit.dto.response.HabitResponse;
 import com.habitplay.habit.model.Habit;
@@ -9,13 +10,16 @@ import com.habitplay.user.model.User;
 import com.habitplay.utils.SecurityUtils;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class HabitServiceImpl implements HabitService {
 
@@ -67,11 +71,47 @@ public class HabitServiceImpl implements HabitService {
     @Transactional
     public void softDelete(UUID id) {
         Habit habit = habitRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Habit not found"));
+                .orElseThrow(() -> new HabitNotFoundException(id));
 
         SecurityUtils.validateOwnership(habit.getUser());
 
         habit.setActive(false);
         habitRepository.save(habit);
+    }
+
+    @Override
+    @Transactional
+    public void incrementProgress(UUID id) {
+        Habit habit = habitRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Habit not found"));
+
+        SecurityUtils.validateOwnership(habit.getUser());
+
+        if (habit.isCompleted()) return;
+
+        int newProgress = habit.getCurrentProgress() + 1;
+        habit.setCurrentProgress(newProgress);
+
+        if (newProgress >= habit.getTarget()) {
+            habit.setCompleted(true);
+            habit.setCompletionDate(LocalDateTime.now());
+        }
+
+        habitRepository.save(habit);
+    }
+
+    @Override
+    @Transactional
+    public void markAsCompleted(UUID id) {
+        Habit habit = habitRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Habit not found"));
+
+        SecurityUtils.validateOwnership(habit.getUser());
+
+        if (!habit.isCompleted()) {
+            habit.setCompleted(true);
+            habit.setCompletionDate(LocalDateTime.now());
+            habitRepository.save(habit);
+        }
     }
 }

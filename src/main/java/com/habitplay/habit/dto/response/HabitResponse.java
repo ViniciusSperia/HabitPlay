@@ -17,6 +17,9 @@ public class HabitResponse {
     private String description;
     private Difficulty difficulty;
     private Integer target;
+    private int currentProgress;
+    private boolean completed;
+    private LocalDateTime completionDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -27,6 +30,9 @@ public class HabitResponse {
                 .description(habit.getDescription())
                 .difficulty(habit.getDifficulty())
                 .target(habit.getTarget())
+                .currentProgress(habit.getCurrentProgress())
+                .completed(habit.isCompleted())
+                .completionDate(habit.getCompletionDate())
                 .createdAt(habit.getCreatedAt())
                 .updatedAt(habit.getUpdatedAt())
                 .build();
