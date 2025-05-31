@@ -252,5 +252,35 @@ public class GameSessionServiceImpl implements GameSessionService {
             }
         }
     }
+
+    @Override
+    @Transactional
+    public void checkAndCloseExpiredSessions() {
+        List<GameSession> sessions = sessionRepository.findAllByActiveTrue();
+
+        LocalDateTime now = LocalDateTime.now();
+        int closedCount = 0;
+
+        for (GameSession session : sessions) {
+            boolean expiredByDate = session.getEndDate() != null && now.isAfter(session.getEndDate());
+            boolean expiredByMonster = session.getCurrentMonsterHealth() <= 0;
+
+            if ((expiredByDate || expiredByMonster) && !session.isCompleted()) {
+                session.setActive(false);
+                session.setCompleted(true);
+                session.setCompletionDate(now);
+                session.setUpdatedAt(now);
+                sessionRepository.save(session);
+
+                log.info("Session {} automatically closed (reason: {})",
+                        session.getId(),
+                        expiredByMonster ? "monster defeated" : "expired by date");
+                closedCount++;
+            }
+        }
+
+        log.info("Checked {} active sessions. {} were closed automatically.", sessions.size(), closedCount);
+    }
+
 }
 

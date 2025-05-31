@@ -17,4 +17,5 @@ public interface GameSessionService {
     void deactivate(UUID sessionId);
     void reduceMonsterHealth(UUID sessionId, int amount);
     void markSessionAsCompleted(UUID sessionId);
+    void checkAndCloseExpiredSessions();
 }

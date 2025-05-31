@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -66,4 +67,13 @@ public class GameSessionController {
         sessionService.markSessionAsCompleted(id);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/check-expired")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> checkExpiredSessions() {
+        sessionService.checkAndCloseExpiredSessions();
+        return ResponseEntity.ok("Checked and closed expired sessions.");
+    }
+
+    
 }
