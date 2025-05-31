@@ -30,9 +30,7 @@ public class GameSessionRequest {
     @FutureOrPresent(message = "Start date must be today or in the future")
     private LocalDateTime startDate;
 
-    @NotEmpty
     private List<UUID> userIds;
 
-    @NotEmpty
     private List<UUID> habitIds;
 }

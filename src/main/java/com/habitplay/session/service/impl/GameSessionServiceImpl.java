@@ -1,5 +1,6 @@
 package com.habitplay.session.service.impl;
 
+import com.habitplay.habit.repository.DefaultHabitRepository;
 import com.habitplay.config.exception.NotFoundException;
 import com.habitplay.habit.model.Habit;
 import com.habitplay.habit.repository.HabitRepository;
@@ -30,6 +31,7 @@ public class GameSessionServiceImpl implements GameSessionService {
     private final GameSessionRepository sessionRepository;
     private final UserRepository userRepository;
     private final HabitRepository habitRepository;
+    private final DefaultHabitRepository defaultHabitRepository;
 
     @Override
     @Transactional
@@ -42,8 +44,16 @@ public class GameSessionServiceImpl implements GameSessionService {
             throw new IllegalArgumentException("Only admins can create TEAM sessions.");
         }
 
-        List<User> users = loadUsers(request.getUserIds());
-        List<Habit> habits = loadHabits(request.getHabitIds());
+        List<User> users;
+        List<Habit> habits;
+
+        if (request.getType() == SessionType.TEAM) {
+            users = loadUsers(request.getUserIds());
+            habits = loadHabits(request.getHabitIds());
+        } else {
+            users = List.of(currentUser);
+            habits = List.of();
+        }
 
         GameSession session = GameSession.builder()
                 .name(request.getName())
@@ -114,12 +124,20 @@ public class GameSessionServiceImpl implements GameSessionService {
     public void reduceMonsterHealth(UUID sessionId, int amount) {
         GameSession session = findActiveSession(sessionId);
         int current = session.getCurrentMonsterHealth();
-        session.setCurrentMonsterHealth(Math.max(0, current - amount));
+        int updatedHealth = Math.max(0, current - amount);
+        session.setCurrentMonsterHealth(updatedHealth);
         session.setUpdatedAt(LocalDateTime.now());
 
-        log.info("Reduced monster health in session {} by {}. New health: {}", sessionId, amount, session.getCurrentMonsterHealth());
+        if (updatedHealth == 0 && !session.isCompleted()) {
+            session.setCompleted(true);
+            session.setCompletionDate(LocalDateTime.now());
+            log.info("Session {} marked as completed automatically (monster defeated)", sessionId);
+        }
+
+        log.info("Reduced monster health in session {} by {}. New health: {}", sessionId, amount, updatedHealth);
         sessionRepository.save(session);
     }
+
 
     @Override
     @Transactional
@@ -154,12 +172,29 @@ public class GameSessionServiceImpl implements GameSessionService {
     }
 
     private void validateRequest(GameSessionRequest request) {
-        if (request.getUserIds().isEmpty() || request.getHabitIds().isEmpty()) {
-            throw new IllegalArgumentException("User and Habit lists must not be empty.");
+        if (request.getStartDate() == null) {
+            throw new IllegalArgumentException("Start date must not be null.");
         }
 
         if (request.getStartDate().isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("Start date must not be in the past.");
+        }
+
+        if (request.getDuration() == null) {
+            throw new IllegalArgumentException("Duration must not be null.");
+        }
+
+        if (request.getType() == null) {
+            throw new IllegalArgumentException("Session type must not be null.");
+        }
+
+        if (request.getType() == SessionType.TEAM) {
+            if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
+                throw new IllegalArgumentException("TEAM sessions require at least one user.");
+            }
+            if (request.getHabitIds() == null || request.getHabitIds().isEmpty()) {
+                throw new IllegalArgumentException("TEAM sessions require at least one habit.");
+            }
         }
     }
 }

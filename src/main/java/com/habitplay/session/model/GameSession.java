@@ -75,4 +75,9 @@ public class GameSession {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    @Column(nullable = false)
+    private boolean completed = false;
+
+    private LocalDateTime completionDate;
 }

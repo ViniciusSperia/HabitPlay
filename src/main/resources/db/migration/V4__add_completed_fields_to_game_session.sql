@@ -1,0 +1,5 @@
+ALTER TABLE game_sessions
+ADD COLUMN completed BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE game_sessions
+ADD COLUMN completion_date TIMESTAMP;
