@@ -1,5 +1,6 @@
 package com.habitplay.session.service.impl;
 
+import com.habitplay.habit.model.DefaultHabit;
 import com.habitplay.habit.repository.DefaultHabitRepository;
 import com.habitplay.config.exception.NotFoundException;
 import com.habitplay.habit.model.Habit;
@@ -51,18 +52,36 @@ public class GameSessionServiceImpl implements GameSessionService {
             throw new IllegalArgumentException("You already have an active " + request.getType() + " session.");
         }
 
-        List<User> users;
-        List<Habit> habits;
+        List<User> users = request.getType() == SessionType.TEAM
+                ? loadUsers(request.getUserIds())
+                : List.of(currentUser);
 
-        if (request.getType() == SessionType.TEAM) {
-            users = loadUsers(request.getUserIds());
-            validateUserSessionConflict(users);
-            habits = loadHabits(request.getHabitIds());
-        } else {
-            users = List.of(currentUser);
-            validateUserSessionConflict(users);
-            habits = List.of();
+        validateUserSessionConflict(users);
+
+        List<DefaultHabit> defaultHabits = defaultHabitRepository.findAllByActiveTrue();
+
+        List<Habit> habitsFromDefaults = defaultHabits.stream()
+                .map(dh -> Habit.builder()
+                        .name(dh.getName())
+                        .description(dh.getDescription())
+                        .difficulty(dh.getDifficulty())
+                        .target(dh.getTarget())
+                        .currentProgress(0)
+                        .completed(false)
+                        .active(true)
+                        .user(request.getType() == SessionType.TEAM ? null : currentUser)
+                        .build())
+                .toList();
+
+        habitRepository.saveAll(habitsFromDefaults);
+
+        List<Habit> extraHabits = List.of();
+        if (request.getType() == SessionType.TEAM && request.getHabitIds() != null && !request.getHabitIds().isEmpty()) {
+            extraHabits = loadHabits(request.getHabitIds());
         }
+
+        List<Habit> allHabits = new java.util.ArrayList<>(habitsFromDefaults);
+        allHabits.addAll(extraHabits);
 
         GameSession session = GameSession.builder()
                 .name(request.getName())
@@ -71,7 +90,7 @@ public class GameSessionServiceImpl implements GameSessionService {
                 .startDate(request.getStartDate())
                 .endDate(request.getStartDate().plusDays(request.getDuration().getDays()))
                 .users(users)
-                .habits(habits)
+                .habits(allHabits)
                 .active(true)
                 .monsterHealth(1000)
                 .currentMonsterHealth(1000)
@@ -82,6 +101,7 @@ public class GameSessionServiceImpl implements GameSessionService {
 
         return GameSessionResponse.from(sessionRepository.save(session));
     }
+
 
     @Override
     @Transactional
@@ -201,26 +221,23 @@ public class GameSessionServiceImpl implements GameSessionService {
             if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
                 throw new IllegalArgumentException("TEAM sessions require at least one user.");
             }
-            if (request.getHabitIds() == null || request.getHabitIds().isEmpty()) {
-                throw new IllegalArgumentException("TEAM sessions require at least one habit.");
+
+            if (request.getHabitIds() != null && !request.getHabitIds().isEmpty()) {
+                long uniqueIdCount = request.getHabitIds().stream().distinct().count();
+                if (uniqueIdCount < request.getHabitIds().size()) {
+                    throw new IllegalArgumentException("Duplicated habit IDs are not allowed in TEAM sessions.");
+                }
+
+                List<Habit> habits = habitRepository.findAllById(request.getHabitIds());
+                long uniqueNameCount = habits.stream()
+                        .map(Habit::getName)
+                        .map(String::toLowerCase)
+                        .distinct()
+                        .count();
+                if (uniqueNameCount < habits.size()) {
+                    throw new IllegalArgumentException("Duplicated habit names are not allowed in TEAM sessions.");
+                }
             }
-        }
-
-        // Verify Ids Duplicate
-        long uniqueIdCount = request.getHabitIds().stream().distinct().count();
-        if (uniqueIdCount < request.getHabitIds().size()) {
-            throw new IllegalArgumentException("Duplicated habit IDs are not allowed in TEAM sessions.");
-        }
-
-        // verify names duplicate
-        List<Habit> habits = habitRepository.findAllById(request.getHabitIds());
-        long uniqueNameCount = habits.stream()
-                .map(Habit::getName)
-                .map(String::toLowerCase)
-                .distinct()
-                .count();
-        if (uniqueNameCount < habits.size()) {
-            throw new IllegalArgumentException("Duplicated habit names are not allowed in TEAM sessions.");
         }
     }
 
