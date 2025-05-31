@@ -1,0 +1,78 @@
+package com.habitplay.session.model;
+
+import com.habitplay.habit.model.Habit;
+import com.habitplay.user.model.User;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+@Entity
+@Table(name = "game_sessions")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class GameSession {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
+
+    @Column(nullable = false)
+    private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SessionType type;
+
+    @Column(nullable = false)
+    private LocalDateTime startDate;
+
+    private LocalDateTime endDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private SessionDuration duration;
+
+    @Column(nullable = false)
+    private boolean active = true;
+
+    @Column(nullable = false)
+    private int monsterHealth = 1000;
+
+    @Column(nullable = false)
+    private int currentMonsterHealth = 1000;
+
+    @ManyToMany
+    @JoinTable(
+            name = "game_session_users",
+            joinColumns = @JoinColumn(name = "game_session_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> users;
+
+    @ManyToMany
+    @JoinTable(
+            name = "game_session_habits",
+            joinColumns = @JoinColumn(name = "game_session_id"),
+            inverseJoinColumns = @JoinColumn(name = "habit_id")
+    )
+    private List<Habit> habits;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
+
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+}

@@ -4,6 +4,7 @@ import com.habitplay.habit.dto.request.HabitRequest;
 import com.habitplay.habit.dto.response.HabitResponse;
 import com.habitplay.habit.service.HabitService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.persistence.ManyToOne;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ public class HabitController {
 
     private final HabitService habitService;
 
+    @ManyToOne
     @Operation(
             summary = "Create a new habit",
             description = "Allows the authenticated user to create a new habit with name, description, difficulty, and target."
@@ -34,7 +36,7 @@ public class HabitController {
     )
     @GetMapping
     public ResponseEntity<List<HabitResponse>> listHabits() {
-        return ResponseEntity.ok(habitService.listByUser());
+        return ResponseEntity.ok(habitService.listMyHabits());
     }
 
     @Operation(
