@@ -11,6 +11,7 @@ import com.habitplay.session.model.GameSession;
 import com.habitplay.session.model.SessionType;
 import com.habitplay.session.repository.GameSessionRepository;
 import com.habitplay.session.service.GameSessionService;
+import com.habitplay.user.model.Role;
 import com.habitplay.user.model.User;
 import com.habitplay.user.repository.UserRepository;
 import com.habitplay.utils.SecurityUtils;
@@ -37,11 +38,17 @@ public class GameSessionServiceImpl implements GameSessionService {
     @Transactional
     public GameSessionResponse create(GameSessionRequest request) {
         validateRequest(request);
-
         User currentUser = SecurityUtils.getCurrentUser();
 
         if (request.getType() == SessionType.TEAM && !currentUser.getRole().name().equals("ADMIN")) {
             throw new IllegalArgumentException("Only admins can create TEAM sessions.");
+        }
+
+        boolean alreadyInActiveSession = sessionRepository
+                .existsByUsersContainingAndTypeAndActiveTrue(currentUser, request.getType());
+
+        if (alreadyInActiveSession) {
+            throw new IllegalArgumentException("You already have an active " + request.getType() + " session.");
         }
 
         List<User> users;
@@ -49,9 +56,11 @@ public class GameSessionServiceImpl implements GameSessionService {
 
         if (request.getType() == SessionType.TEAM) {
             users = loadUsers(request.getUserIds());
+            validateUserSessionConflict(users);
             habits = loadHabits(request.getHabitIds());
         } else {
             users = List.of(currentUser);
+            validateUserSessionConflict(users);
             habits = List.of();
         }
 
@@ -196,5 +205,35 @@ public class GameSessionServiceImpl implements GameSessionService {
                 throw new IllegalArgumentException("TEAM sessions require at least one habit.");
             }
         }
+
+        // Verify Ids Duplicate
+        long uniqueIdCount = request.getHabitIds().stream().distinct().count();
+        if (uniqueIdCount < request.getHabitIds().size()) {
+            throw new IllegalArgumentException("Duplicated habit IDs are not allowed in TEAM sessions.");
+        }
+
+        // verify names duplicate
+        List<Habit> habits = habitRepository.findAllById(request.getHabitIds());
+        long uniqueNameCount = habits.stream()
+                .map(Habit::getName)
+                .map(String::toLowerCase)
+                .distinct()
+                .count();
+        if (uniqueNameCount < habits.size()) {
+            throw new IllegalArgumentException("Duplicated habit names are not allowed in TEAM sessions.");
+        }
+    }
+
+
+    private void validateUserSessionConflict(List<User> users) {
+        for (User user : users) {
+            if (user.getRole() == Role.ADMIN) {
+                boolean exists = sessionRepository.existsByUsersContainingAndActiveTrue(user);
+                if (exists) {
+                    throw new IllegalArgumentException("Admin already has an active session.");
+                }
+            }
+        }
     }
 }
+

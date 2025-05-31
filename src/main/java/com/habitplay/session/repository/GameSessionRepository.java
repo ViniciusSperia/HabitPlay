@@ -2,6 +2,7 @@ package com.habitplay.session.repository;
 
 import com.habitplay.habit.model.Habit;
 import com.habitplay.session.model.GameSession;
+import com.habitplay.session.model.SessionType;
 import com.habitplay.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -18,4 +19,8 @@ public interface GameSessionRepository extends JpaRepository<GameSession, UUID> 
     List<GameSession> findAllByActiveTrue();
 
     List<GameSession> findByHabitsContainingAndActiveTrue(Habit habit);
+
+    Boolean existsByUsersContainingAndActiveTrue(User user);
+    boolean existsByUsersContainingAndTypeAndActiveTrue(User user, SessionType type);
+
 }
