@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface HabitProgressService {
 
-    HabitProgressResponse incrementProgress(UUID sessionId, UUID habitId, int amount);
+    HabitProgressResponse incrementProgress(UUID sessionId, UUID habitId);
 
     HabitProgressResponse markAsCompleted(UUID sessionId, UUID habitId);
 

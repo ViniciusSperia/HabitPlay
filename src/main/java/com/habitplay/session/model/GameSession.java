@@ -1,6 +1,7 @@
 package com.habitplay.session.model;
 
 import com.habitplay.habit.model.Habit;
+import com.habitplay.monster.model.Monster;
 import com.habitplay.user.model.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -43,11 +44,12 @@ public class GameSession {
     @Column(nullable = false)
     private boolean active = true;
 
-    @Column(nullable = false)
-    private int monsterHealth = 1000;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "monster_id", nullable = false)
+    private Monster monster;
 
     @Column(nullable = false)
-    private int currentMonsterHealth = 1000;
+    private int currentMonsterHealth;
 
     @ManyToMany
     @JoinTable(

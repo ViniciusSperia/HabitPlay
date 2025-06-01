@@ -1,6 +1,5 @@
 package com.habitplay.session.dto.response;
 
-import com.habitplay.monster.dto.response.MonsterSummaryResponse;
 import com.habitplay.session.model.GameSession;
 import com.habitplay.session.model.SessionDuration;
 import com.habitplay.session.model.SessionType;
@@ -12,7 +11,7 @@ import java.util.UUID;
 
 @Getter
 @Builder
-public class GameSessionResponse {
+public class GameSessionSummaryResponse {
 
     private UUID id;
     private String name;
@@ -21,14 +20,14 @@ public class GameSessionResponse {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private boolean active;
-    private int monsterHealth;
+    private boolean completed;
+    private int monsterHealth; // Added
     private int currentMonsterHealth;
-    private MonsterSummaryResponse monster;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public static GameSessionResponse from(GameSession session) {
-        return GameSessionResponse.builder()
+    public static GameSessionSummaryResponse from(GameSession session) {
+        return GameSessionSummaryResponse.builder()
                 .id(session.getId())
                 .name(session.getName())
                 .type(session.getType())
@@ -36,9 +35,9 @@ public class GameSessionResponse {
                 .startDate(session.getStartDate())
                 .endDate(session.getEndDate())
                 .active(session.isActive())
+                .completed(session.isCompleted())
                 .monsterHealth(session.getMonster().getMaxHealth())
                 .currentMonsterHealth(session.getCurrentMonsterHealth())
-                .monster(MonsterSummaryResponse.from(session.getMonster()))
                 .createdAt(session.getCreatedAt())
                 .updatedAt(session.getUpdatedAt())
                 .build();

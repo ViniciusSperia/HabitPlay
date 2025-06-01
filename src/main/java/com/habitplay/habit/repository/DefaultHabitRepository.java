@@ -7,6 +7,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface DefaultHabitRepository extends JpaRepository<DefaultHabit, UUID> {
-
     List<DefaultHabit> findAllByActiveTrue();
 }

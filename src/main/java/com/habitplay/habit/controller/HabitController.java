@@ -22,8 +22,8 @@ public class HabitController {
 
     @ManyToOne
     @Operation(
-            summary = "Create a new habit",
-            description = "Allows the authenticated user to create a new habit with name, description, difficulty, and target."
+            summary = "Create new habit",
+            description = "Allows the authenticated user to create new habit with name, description, difficulty, and target."
     )
     @PostMapping
     public ResponseEntity<HabitResponse> createHabit(@RequestBody @Valid HabitRequest request) {
@@ -52,7 +52,7 @@ public class HabitController {
     }
 
     @Operation(
-            summary = "Delete a habit (soft delete)",
+            summary = "Delete habit (soft delete)",
             description = "Marks the specified habit as inactive (soft delete) for the authenticated user."
     )
     @DeleteMapping("/{id}")

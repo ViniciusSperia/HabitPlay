@@ -7,6 +7,7 @@ import com.habitplay.habit.model.Habit;
 import com.habitplay.habit.repository.HabitRepository;
 import com.habitplay.habit.service.HabitService;
 import com.habitplay.session.model.GameSession;
+import com.habitplay.session.service.GameSessionService;
 import com.habitplay.session.repository.GameSessionRepository;
 import com.habitplay.user.model.User;
 import com.habitplay.utils.SecurityUtils;
@@ -26,6 +27,7 @@ public class HabitServiceImpl implements HabitService {
 
     private final HabitRepository habitRepository;
     private final GameSessionRepository sessionRepository;
+    private final GameSessionService gameSessionService;
 
     public HabitResponse create(HabitRequest request) {
         User user = SecurityUtils.getCurrentUser();
@@ -77,7 +79,7 @@ public class HabitServiceImpl implements HabitService {
         Habit habit = findByIdAndValidateOwnership(id);
 
         if (habit.isCompleted()) {
-            return HabitResponse.from(habit); // já completo
+            return HabitResponse.from(habit);
         }
 
         habit.setCurrentProgress(habit.getCurrentProgress() + 1);
@@ -85,9 +87,7 @@ public class HabitServiceImpl implements HabitService {
         if (habit.getCurrentProgress() >= habit.getTarget()) {
             habit.setCompleted(true);
             habit.setCompletionDate(LocalDateTime.now());
-
-            // Reduzir a vida do monstro nas sessões ativas que usam esse hábito
-            reduceMonsterHealthFromSessions(habit);
+            notifySessionsAboutHabitCompletion(habit);
         }
 
         habit.setUpdatedAt(LocalDateTime.now());
@@ -101,16 +101,14 @@ public class HabitServiceImpl implements HabitService {
         if (!habit.isCompleted()) {
             habit.setCompleted(true);
             habit.setCompletionDate(LocalDateTime.now());
-
-            // Reduzir vida do monstro
-            reduceMonsterHealthFromSessions(habit);
+            notifySessionsAboutHabitCompletion(habit);
         }
 
         habit.setUpdatedAt(LocalDateTime.now());
         return HabitResponse.from(habitRepository.save(habit));
     }
 
-    private void reduceMonsterHealthFromSessions(Habit habit) {
+    private void notifySessionsAboutHabitCompletion(Habit habit) {
         List<GameSession> sessions = sessionRepository.findByHabitsContainingAndActiveTrue(habit);
 
         int damage = switch (habit.getDifficulty()) {
@@ -120,11 +118,7 @@ public class HabitServiceImpl implements HabitService {
         };
 
         for (GameSession session : sessions) {
-            session.setCurrentMonsterHealth(Math.max(0, session.getCurrentMonsterHealth() - damage));
-            session.setUpdatedAt(LocalDateTime.now());
-
-            log.info("Habit '{}' completed. Monster health reduced by {} in session '{}'", habit.getName(), damage, session.getName());
-            sessionRepository.save(session);
+            gameSessionService.reduceMonsterHealth(session.getId(), damage);
         }
     }
 

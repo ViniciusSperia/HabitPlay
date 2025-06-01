@@ -14,7 +14,7 @@ public class SwaggerConfig {
     public GroupedOpenApi publicApi() {
         return GroupedOpenApi.builder()
                 .group("public")
-                .packagesToScan("com.habitplay")  // Adjust if your controllers are in a different package
+                .packagesToScan("com.habitplay")  // Adjust if your controllers are in different package
                 .pathsToMatch("/api/**")  // Optional, to only include specific paths
                 .build();
     }

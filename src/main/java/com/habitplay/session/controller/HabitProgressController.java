@@ -19,10 +19,9 @@ public class HabitProgressController {
     @PostMapping("/{sessionId}/{habitId}/increment")
     public HabitProgressResponse increment(
             @PathVariable UUID sessionId,
-            @PathVariable UUID habitId,
-            @RequestParam @Min(1) int amount
+            @PathVariable UUID habitId
     ) {
-        return service.incrementProgress(sessionId, habitId, amount);
+        return service.incrementProgress(sessionId, habitId);
     }
 
     @PostMapping("/{sessionId}/{habitId}/complete")

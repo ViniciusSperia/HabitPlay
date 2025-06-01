@@ -3,6 +3,7 @@ package com.habitplay.session.controller;
 import com.habitplay.session.dto.request.GameSessionRequest;
 import com.habitplay.session.dto.request.GameSessionUpdateRequest;
 import com.habitplay.session.dto.response.GameSessionResponse;
+import com.habitplay.session.dto.response.GameSessionSummaryResponse;
 import com.habitplay.session.service.GameSessionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -68,6 +69,12 @@ public class GameSessionController {
         return ResponseEntity.ok().build();
     }
 
+    @GetMapping("/sessions/{id}/summary")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<GameSessionSummaryResponse> getSummary(@PathVariable UUID id) {
+        return ResponseEntity.ok(sessionService.findSummaryById(id));
+    }
+
     @GetMapping("/check-expired")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> checkExpiredSessions() {
@@ -75,5 +82,5 @@ public class GameSessionController {
         return ResponseEntity.ok("Checked and closed expired sessions.");
     }
 
-    
+
 }
