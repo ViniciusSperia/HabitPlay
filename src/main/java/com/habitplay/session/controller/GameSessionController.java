@@ -69,7 +69,7 @@ public class GameSessionController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/sessions/{id}/summary")
+    @GetMapping("/{id}/summary")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<GameSessionSummaryResponse> getSummary(@PathVariable UUID id) {
         return ResponseEntity.ok(sessionService.findSummaryById(id));
