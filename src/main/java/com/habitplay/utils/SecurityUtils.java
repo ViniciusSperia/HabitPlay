@@ -9,13 +9,22 @@ public class SecurityUtils {
 
     public static User getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        return (User) authentication.getPrincipal();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("No authenticated user found.");
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof User user)) {
+            throw new AccessDeniedException("Invalid user principal.");
+        }
+
+        return user;
     }
 
     public static void validateOwnership(User owner) {
         User currentUser = getCurrentUser();
         if (!currentUser.getId().equals(owner.getId())) {
-            throw new AccessDeniedException("You are not allowed to access this resource");
+            throw new AccessDeniedException("Access denied: user does not own this resource.");
         }
     }
 }

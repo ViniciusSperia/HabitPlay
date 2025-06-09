@@ -20,13 +20,14 @@ public record HabitProgressResponse(
     public static HabitProgressResponse from(HabitProgress progress) {
         return HabitProgressResponse.builder()
                 .id(progress.getId())
-                .sessionId(progress.getSession().getId())
+                .sessionId(progress.getGameSession().getId())
                 .habitId(progress.getHabit().getId())
-                .currentProgress(progress.getCurrentProgress())
+                .currentProgress(progress.getProgress())
                 .completed(progress.isCompleted())
                 .completionDate(progress.getCompletionDate())
                 .createdAt(progress.getCreatedAt())
                 .updatedAt(progress.getUpdatedAt())
                 .build();
     }
+
 }

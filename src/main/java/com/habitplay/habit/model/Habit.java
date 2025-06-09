@@ -2,6 +2,7 @@ package com.habitplay.habit.model;
 
 import com.habitplay.user.model.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -11,7 +12,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
-
 @Entity
 @Table(name = "habits")
 @Getter
@@ -26,6 +26,7 @@ public class Habit {
     private UUID id;
 
     @NotBlank
+    @Column(nullable = false)
     private String name;
 
     @Size(max = 255, message = "Description must not exceed 255 characters")
@@ -33,19 +34,15 @@ public class Habit {
 
     @Enumerated(EnumType.STRING)
     @NotNull
+    @Column(nullable = false)
     private Difficulty difficulty;
 
     @NotNull
-    private Integer target;
+    @Min(1)
+    @Column(nullable = false)
+    private int target;
 
-    private int currentProgress = 0;
-
-    @Column(name = "completed", nullable = false)
-    private boolean completed = false;
-
-    @Column(name = "completion_date")
-    private LocalDateTime completionDate;
-
+    @Column(nullable = false)
     private boolean active = true;
 
     @ManyToOne(fetch = FetchType.LAZY)

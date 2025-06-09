@@ -30,4 +30,5 @@ public interface GameSessionRepository extends JpaRepository<GameSession, UUID> 
     @Query("SELECT s FROM GameSession s JOIN FETCH s.monster WHERE s.id = :id")
     Optional<GameSession> findByIdWithMonster(@Param("id") UUID id);
 
+    List<GameSession> findByUsersContaining(User currentUser);
 }

@@ -2,7 +2,7 @@ package com.habitplay.session.controller;
 
 import com.habitplay.session.dto.response.HabitProgressResponse;
 import com.habitplay.session.service.HabitProgressService;
-import jakarta.validation.constraints.Min;
+import com.habitplay.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +21,8 @@ public class HabitProgressController {
             @PathVariable UUID sessionId,
             @PathVariable UUID habitId
     ) {
-        return service.incrementProgress(sessionId, habitId);
+        UUID userId = SecurityUtils.getCurrentUser().getId();
+        return service.incrementProgress(habitId, sessionId, userId);
     }
 
     @PostMapping("/{sessionId}/{habitId}/complete")

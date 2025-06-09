@@ -12,13 +12,21 @@ public interface GameSessionService {
 
     GameSessionResponse create(GameSessionRequest request);
 
-    GameSessionSummaryResponse findSummaryById(UUID sessionId);
-    GameSessionResponse update(UUID sessionId, GameSessionUpdateRequest request);
-    GameSessionResponse findById(UUID sessionId);
-    List<GameSessionResponse> listMySessions();
+    GameSessionResponse update(UUID id, GameSessionUpdateRequest request);
+
+    GameSessionResponse findById(UUID id);
+
     List<GameSessionResponse> listAllActive();
-    void deactivate(UUID sessionId);
-    void reduceMonsterHealth(UUID sessionId, int amount);
-    void markSessionAsCompleted(UUID sessionId);
+
+    List<GameSessionSummaryResponse> listMySessions();
+
+    void deactivate(UUID id);
+
+    void reduceMonsterHealth(UUID id, int amount);
+
+    void markSessionAsCompleted(UUID id);
+
+    GameSessionSummaryResponse findSummaryById(UUID id);
+
     void checkAndCloseExpiredSessions();
 }

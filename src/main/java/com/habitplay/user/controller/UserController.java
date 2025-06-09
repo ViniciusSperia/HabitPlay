@@ -1,10 +1,9 @@
 package com.habitplay.user.controller;
 
-import com.habitplay.auth.dto.response.AuthResponse;
-import com.habitplay.user.dto.response.UserResponse;
 import com.habitplay.user.dto.request.UserUpdateRequest;
+import com.habitplay.user.dto.response.UserResponse;
 import com.habitplay.user.model.User;
-import com.habitplay.user.repository.UserRepository;
+import com.habitplay.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,26 +19,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserController {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getProfile(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(UserResponse.from(user));
+        return ResponseEntity.ok(userService.getProfile(user));
     }
 
     @PutMapping("/me")
     public ResponseEntity<UserResponse> updateProfile(@AuthenticationPrincipal User user,
                                                       @RequestBody @Valid UserUpdateRequest request) {
-        user.setFullName(request.getFullName());
-        user.setProfileImageUrl(request.getProfileImageUrl());
-        userRepository.save(user);
-        return ResponseEntity.ok(UserResponse.from(user));
+        return ResponseEntity.ok(userService.updateProfile(user, request));
     }
 
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteProfile(@AuthenticationPrincipal User user) {
-        user.setActive(false);
-        userRepository.save(user);
+        userService.softDeleteProfile(user);
         return ResponseEntity.noContent().build();
     }
 
@@ -47,27 +42,20 @@ public class UserController {
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponse>> listAll() {
-        List<UserResponse> users = userRepository.findAll().stream()
-                .map(UserResponse::from)
-                .toList();
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(userService.listAllUsers());
     }
 
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> toggleStatus(@PathVariable UUID id) {
-        User user = userRepository.findById(id).orElseThrow();
-        user.setActive(!user.isActive());
-        userRepository.save(user);
+        userService.toggleStatus(id);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> adminSoftDelete(@PathVariable UUID id) {
-        User user = userRepository.findById(id).orElseThrow();
-        user.setActive(false);
-        userRepository.save(user);
+        userService.adminSoftDelete(id);
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,6 +1,5 @@
 package com.habitplay.session.model;
 
-import com.habitplay.habit.model.Habit;
 import com.habitplay.monster.model.Monster;
 import com.habitplay.user.model.User;
 import jakarta.persistence.*;
@@ -59,17 +58,15 @@ public class GameSession {
     )
     private List<User> users;
 
-    @ManyToMany
-    @JoinTable(
-            name = "game_session_habits",
-            joinColumns = @JoinColumn(name = "game_session_id"),
-            inverseJoinColumns = @JoinColumn(name = "habit_id")
-    )
-    private List<Habit> habits;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
     private User createdBy;
+
+    @Column(nullable = false)
+    private boolean completed = false;
+
+    @Column
+    private LocalDateTime completionDate;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -77,9 +74,4 @@ public class GameSession {
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
-
-    @Column(nullable = false)
-    private boolean completed = false;
-
-    private LocalDateTime completionDate;
 }

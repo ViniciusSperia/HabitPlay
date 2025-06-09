@@ -1,10 +1,10 @@
 package com.habitplay.habit.controller;
 
 import com.habitplay.habit.dto.request.HabitRequest;
+import com.habitplay.habit.dto.response.AvailableHabitsResponse;
 import com.habitplay.habit.dto.response.HabitResponse;
 import com.habitplay.habit.service.HabitService;
 import io.swagger.v3.oas.annotations.Operation;
-import jakarta.persistence.ManyToOne;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,10 +20,9 @@ public class HabitController {
 
     private final HabitService habitService;
 
-    @ManyToOne
     @Operation(
             summary = "Create new habit",
-            description = "Allows the authenticated user to create new habit with name, description, difficulty, and target."
+            description = "Allows the authenticated user to create a new habit with name, description, difficulty, and target."
     )
     @PostMapping
     public ResponseEntity<HabitResponse> createHabit(@RequestBody @Valid HabitRequest request) {
@@ -61,15 +60,13 @@ public class HabitController {
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/increment")
-    public ResponseEntity<Void> incrementHabitProgress(@PathVariable UUID id) {
-        habitService.incrementProgress(id);
-        return ResponseEntity.noContent().build();
+    @Operation(
+            summary = "List available habits (default + custom)",
+            description = "Combines user-created and system default habits into one response"
+    )
+    @GetMapping("/available")
+    public ResponseEntity<AvailableHabitsResponse> getAvailableHabits() {
+        return ResponseEntity.ok(habitService.getAvailableHabits());
     }
 
-    @PatchMapping("/{id}/complete")
-    public ResponseEntity<Void> completeHabit(@PathVariable UUID id) {
-        habitService.markAsCompleted(id);
-        return ResponseEntity.noContent().build();
-    }
 }

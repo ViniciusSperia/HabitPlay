@@ -10,4 +10,7 @@ import java.util.UUID;
 public interface MonsterRepository extends JpaRepository<Monster, UUID> {
 
     List<Monster> findAllByDifficulty(MonsterDifficulty difficulty);
+    List<Monster> findAllByActiveTrue();
+    List<Monster> findAllByDifficultyAndActiveTrue(MonsterDifficulty difficulty);
+
 }

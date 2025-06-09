@@ -32,8 +32,8 @@ public class GameSessionRequest {
 
     private List<UUID> userIds;
 
-    private List<UUID> habitIds;
-
     @NotNull
     private UUID monsterId;
+
+    private List<UUID> habitIds;
 }

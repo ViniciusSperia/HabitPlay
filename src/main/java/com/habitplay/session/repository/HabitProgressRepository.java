@@ -13,4 +13,6 @@ public interface HabitProgressRepository extends JpaRepository<HabitProgress, UU
     List<HabitProgress> findAllBySession(GameSession session);
 
     Optional<HabitProgress> findBySessionIdAndHabitId(UUID sessionId, UUID habitId);
+
+    Optional<HabitProgress> findByHabitAndSessionAndUser(UUID habitId, UUID sessionId, UUID userId);
 }

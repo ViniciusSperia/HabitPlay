@@ -25,6 +25,20 @@ public class MonsterController {
         return ResponseEntity.ok(monsterService.create(request));
     }
 
+    @PutMapping("/admin/monsters/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MonsterResponse> update(@PathVariable UUID id,
+                                                  @Valid @RequestBody MonsterRequest request) {
+        return ResponseEntity.ok(monsterService.update(id, request));
+    }
+
+    @DeleteMapping("/admin/monsters/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deactivate(@PathVariable UUID id) {
+        monsterService.softDelete(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/public/monsters")
     public ResponseEntity<List<MonsterResponse>> listAll() {
         return ResponseEntity.ok(monsterService.listAll());

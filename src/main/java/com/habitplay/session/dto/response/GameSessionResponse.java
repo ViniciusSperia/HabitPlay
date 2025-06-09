@@ -10,10 +10,9 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Getter
 @Builder
+@Getter
 public class GameSessionResponse {
-
     private UUID id;
     private String name;
     private SessionType type;
@@ -24,6 +23,8 @@ public class GameSessionResponse {
     private int monsterHealth;
     private int currentMonsterHealth;
     private MonsterSummaryResponse monster;
+    private boolean completed;
+    private LocalDateTime completionDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -39,8 +40,11 @@ public class GameSessionResponse {
                 .monsterHealth(session.getMonster().getMaxHealth())
                 .currentMonsterHealth(session.getCurrentMonsterHealth())
                 .monster(MonsterSummaryResponse.from(session.getMonster()))
+                .completed(session.isCompleted())
+                .completionDate(session.getCompletionDate())
                 .createdAt(session.getCreatedAt())
                 .updatedAt(session.getUpdatedAt())
                 .build();
     }
 }
+

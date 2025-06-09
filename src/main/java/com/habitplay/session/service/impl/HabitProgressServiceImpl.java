@@ -1,16 +1,17 @@
 package com.habitplay.session.service.impl;
 
+import com.habitplay.config.exception.BusinessException;
 import com.habitplay.config.exception.NotFoundException;
 import com.habitplay.habit.model.Habit;
 import com.habitplay.habit.repository.HabitRepository;
 import com.habitplay.session.dto.response.HabitProgressResponse;
 import com.habitplay.session.model.GameSession;
 import com.habitplay.session.model.HabitProgress;
-import com.habitplay.session.repository.HabitProgressRepository;
 import com.habitplay.session.repository.GameSessionRepository;
+import com.habitplay.session.repository.HabitProgressRepository;
 import com.habitplay.session.service.HabitProgressService;
 import com.habitplay.user.model.User;
-import com.habitplay.utils.SecurityUtils;
+import com.habitplay.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,45 +29,36 @@ public class HabitProgressServiceImpl implements HabitProgressService {
     private final HabitProgressRepository progressRepository;
     private final GameSessionRepository sessionRepository;
     private final HabitRepository habitRepository;
-    private final GameSessionServiceImpl gameSessionService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
-    public HabitProgressResponse incrementProgress(UUID sessionId, UUID habitId) {
-        User user = SecurityUtils.getCurrentUser();
-
+    public HabitProgressResponse incrementProgress(UUID habitId, UUID sessionId, UUID userId) {
         Habit habit = habitRepository.findById(habitId)
-                .orElseThrow(() -> new NotFoundException("Habit not found: " + habitId));
+                .orElseThrow(() -> new NotFoundException("Habit not found"));
 
         GameSession session = sessionRepository.findById(sessionId)
-                .orElseThrow(() -> new NotFoundException("Session not found: " + sessionId));
+                .orElseThrow(() -> new NotFoundException("Session not found"));
 
-        if (habit.isCompleted()) {
-            throw new IllegalStateException("Habit is already completed.");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        HabitProgress progress = progressRepository
+                .findByHabitAndSessionAndUser(habitId, sessionId, userId)
+                .orElseGet(() -> createProgressEntry(habit, session, user));
+
+        if (progress.isCompleted()) {
+            throw new BusinessException("Habit already completed");
         }
 
-        if (!session.isActive() || session.isCompleted()) {
-            throw new IllegalStateException("Cannot update habit in a completed or inactive session.");
+        progress.setProgress(progress.getProgress() + 1);
+
+        if (progress.getProgress() >= habit.getTarget()) {
+            progress.setCompleted(true);
+            progress.setCompletionDate(LocalDateTime.now());
         }
 
-        int updatedProgress = habit.getCurrentProgress() + 1;
-        habit.setCurrentProgress(updatedProgress);
-        habit.setUpdatedAt(LocalDateTime.now());
-
-        log.info("User {} incremented progress of habit '{}' in session {} to {}",
-                user.getEmail(), habit.getName(), sessionId, updatedProgress);
-
-        if (updatedProgress >= habit.getTarget()) {
-            habit.setCompleted(true);
-            habit.setCompletionDate(LocalDateTime.now());
-
-            int damage = habit.getDifficulty().getDamageValue();
-            log.info("Habit '{}' completed. Applying {} damage to monster in session {}", habit.getName(), damage, sessionId);
-            gameSessionService.reduceMonsterHealth(sessionId, damage);
-        }
-
-        habitRepository.save(habit);
-        return HabitProgressResponse.from(getProgressOrThrow(sessionId, habitId));
+        return HabitProgressResponse.from(progressRepository.save(progress));
     }
 
     @Override
@@ -77,16 +69,9 @@ public class HabitProgressServiceImpl implements HabitProgressService {
             progress.setCompleted(true);
             progress.setCompletionDate(LocalDateTime.now());
 
-            GameSession session = progress.getSession();
+            GameSession session = progress.getGameSession();
             int damage = progress.getHabit().getDifficulty().getDamageValue();
-            int newHealth = Math.max(0, session.getCurrentMonsterHealth() - damage);
-            session.setCurrentMonsterHealth(newHealth);
-            session.setUpdatedAt(LocalDateTime.now());
-
-            if (newHealth == 0 && !session.isCompleted()) {
-                session.setCompleted(true);
-                session.setCompletionDate(LocalDateTime.now());
-            }
+            applyDamageToMonster(session, damage);
         }
         return HabitProgressResponse.from(progressRepository.save(progress));
     }
@@ -106,6 +91,16 @@ public class HabitProgressServiceImpl implements HabitProgressService {
 
     // ===================== HELPERS =====================
 
+    private HabitProgress createProgressEntry(Habit habit, GameSession session, User user) {
+        return progressRepository.save(HabitProgress.builder()
+                .habit(habit)
+                .user(user)
+                .gameSession(session)
+                .progress(0)
+                .completed(false)
+                .build());
+    }
+
     private HabitProgress getProgressOrThrow(UUID sessionId, UUID habitId) {
         return progressRepository.findBySessionIdAndHabitId(sessionId, habitId)
                 .orElseThrow(() -> new NotFoundException("Habit progress not found."));
@@ -114,5 +109,16 @@ public class HabitProgressServiceImpl implements HabitProgressService {
     private GameSession findSessionOrThrow(UUID sessionId) {
         return sessionRepository.findByIdAndActiveTrue(sessionId)
                 .orElseThrow(() -> new NotFoundException("Session not found."));
+    }
+
+    private void applyDamageToMonster(GameSession session, int damage) {
+        int newHealth = Math.max(0, session.getCurrentMonsterHealth() - damage);
+        session.setCurrentMonsterHealth(newHealth);
+        session.setUpdatedAt(LocalDateTime.now());
+
+        if (newHealth == 0 && !session.isCompleted()) {
+            session.setCompleted(true);
+            session.setCompletionDate(LocalDateTime.now());
+        }
     }
 }

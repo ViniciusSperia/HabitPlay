@@ -6,12 +6,16 @@ CREATE TABLE game_sessions (
     end_date TIMESTAMP,
     duration VARCHAR(20) NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
-    monster_health INT NOT NULL,
     current_monster_health INT NOT NULL,
     created_by UUID NOT NULL,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    completion_date TIMESTAMP,
+    monster_id UUID,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_created_by FOREIGN KEY (created_by) REFERENCES users(id)
+
+    CONSTRAINT fk_created_by FOREIGN KEY (created_by) REFERENCES users(id),
+    CONSTRAINT fk_game_session_monster FOREIGN KEY (monster_id) REFERENCES monsters(id)
 );
 
 CREATE TABLE game_session_users (

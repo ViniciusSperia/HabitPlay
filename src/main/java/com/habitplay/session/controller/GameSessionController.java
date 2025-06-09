@@ -41,7 +41,7 @@ public class GameSessionController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<List<GameSessionResponse>> listMySessions() {
+    public ResponseEntity<List<GameSessionSummaryResponse>> listMySessions() {
         return ResponseEntity.ok(sessionService.listMySessions());
     }
 
@@ -69,8 +69,7 @@ public class GameSessionController {
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/sessions/{id}/summary")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @GetMapping("/{id}/summary")
     public ResponseEntity<GameSessionSummaryResponse> getSummary(@PathVariable UUID id) {
         return ResponseEntity.ok(sessionService.findSummaryById(id));
     }
@@ -81,6 +80,4 @@ public class GameSessionController {
         sessionService.checkAndCloseExpiredSessions();
         return ResponseEntity.ok("Checked and closed expired sessions.");
     }
-
-
 }
