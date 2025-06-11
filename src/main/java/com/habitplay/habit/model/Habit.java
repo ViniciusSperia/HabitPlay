@@ -1,5 +1,6 @@
 package com.habitplay.habit.model;
 
+import com.habitplay.difficulty.model.Difficulty;
 import com.habitplay.user.model.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
@@ -32,15 +33,17 @@ public class Habit {
     @Size(max = 255, message = "Description must not exceed 255 characters")
     private String description;
 
-    @Enumerated(EnumType.STRING)
-    @NotNull
-    @Column(nullable = false)
+    @ManyToOne
+    @JoinColumn(name = "difficulty_id", nullable = false)
     private Difficulty difficulty;
 
     @NotNull
     @Min(1)
     @Column(nullable = false)
     private int target;
+
+    @Column(nullable = false)
+    private int damage;
 
     @Column(nullable = false)
     private boolean active = true;

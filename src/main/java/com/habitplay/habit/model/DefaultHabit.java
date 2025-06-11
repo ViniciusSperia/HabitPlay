@@ -26,9 +26,11 @@ public class DefaultHabit {
 
     private String description;
 
-    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Difficulty difficulty;
+    private String difficulty;
+
+    @Column(nullable = false)
+    private int damage;
 
     @Column(nullable = false)
     private int target;

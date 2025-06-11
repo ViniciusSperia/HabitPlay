@@ -61,10 +61,11 @@ public class GameSessionValidatorImpl {
     }
 
     private void validateAdminRights(User user) {
-        if (user.getRole() != Role.ADMIN) {
+        if (!"ADMIN".equalsIgnoreCase(user.getRole().getName())) {
             throw new IllegalArgumentException("Only admins can create TEAM sessions.");
         }
     }
+
 
     private void validateUsersExist(List<UUID> userIds) {
         if (userIds == null || userIds.isEmpty()) {

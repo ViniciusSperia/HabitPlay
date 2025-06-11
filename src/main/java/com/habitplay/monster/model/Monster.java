@@ -1,6 +1,7 @@
 package com.habitplay.monster.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -18,32 +19,37 @@ import java.util.UUID;
 public class Monster {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue
     private UUID id;
 
-    @Column(nullable = false)
+    @NotBlank
+    @Column(nullable = false, unique = true)
     private String name;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "difficulty_id", nullable = false)
     private MonsterDifficulty difficulty;
 
     @Column(nullable = false)
-    private int maxHealth;
+    private Integer maxHealth;
 
     @Column(nullable = false)
-    private int damagePerHabit;
+    private Boolean active = true;
 
+    @NotBlank
     @Column(nullable = false)
     private String imageUrl;
 
-    @Column(nullable = false)
-    private boolean active = true;
-
     @CreationTimestamp
-    @Column(updatable = false)
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
+    @Column
     private LocalDateTime updatedAt;
+
+    public boolean isActive() {
+        return this.active = true;
+    }
+
 }

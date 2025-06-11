@@ -1,6 +1,5 @@
 package com.habitplay.habit.dto.request;
 
-import com.habitplay.habit.model.Difficulty;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,7 +19,10 @@ public class HabitRequest {
     private String description;
 
     @NotNull
-    private Difficulty difficulty;
+    private UUID difficultyId;
+
+    @NotNull
+    private Integer damage;
 
     @NotNull
     @Min(1)

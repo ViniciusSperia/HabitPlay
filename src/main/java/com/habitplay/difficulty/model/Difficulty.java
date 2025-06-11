@@ -25,7 +25,7 @@ public class Difficulty {
     private String name;
 
     @Column(nullable = false)
-    private Boolean active = true;
+    private Boolean active;
 
     @Column(nullable = false, updatable = false)
     private UUID createdBy;
@@ -40,4 +40,8 @@ public class Difficulty {
     @UpdateTimestamp
     @Column
     private LocalDateTime updatedAt;
+
+    public boolean isActive() {
+       return this.active = true;
+    }
 }

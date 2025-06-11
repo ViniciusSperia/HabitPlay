@@ -1,11 +1,12 @@
-CREATE TABLE monsters (
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
+CREATE TABLE default_habits (
     id UUID PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
+    name VARCHAR(255) NOT NULL,
     description TEXT,
-    image_url VARCHAR(500) NOT NULL,
     difficulty VARCHAR(50) NOT NULL,
-    max_health INTEGER NOT NULL,
-    damage_per_habit INTEGER NOT NULL,
+    target INTEGER NOT NULL,
+    damage INTEGER NOT NULL,
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

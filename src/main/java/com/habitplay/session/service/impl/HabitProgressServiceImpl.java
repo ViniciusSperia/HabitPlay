@@ -44,7 +44,7 @@ public class HabitProgressServiceImpl implements HabitProgressService {
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
         HabitProgress progress = progressRepository
-                .findByHabitAndSessionAndUser(habitId, sessionId, userId)
+                .findByHabitAndGameSessionAndUser(habit, session, user)
                 .orElseGet(() -> createProgressEntry(habit, session, user));
 
         if (progress.isCompleted()) {
@@ -70,7 +70,7 @@ public class HabitProgressServiceImpl implements HabitProgressService {
             progress.setCompletionDate(LocalDateTime.now());
 
             GameSession session = progress.getGameSession();
-            int damage = progress.getHabit().getDifficulty().getDamageValue();
+            int damage = progress.getHabit().getDamage();
             applyDamageToMonster(session, damage);
         }
         return HabitProgressResponse.from(progressRepository.save(progress));
@@ -78,13 +78,13 @@ public class HabitProgressServiceImpl implements HabitProgressService {
 
     @Override
     public List<HabitProgressResponse> listBySession(UUID sessionId) {
-        GameSession session = findSessionOrThrow(sessionId);
-        return progressRepository.findAllBySession(session).stream()
+        GameSession gameSession = findSessionOrThrow(sessionId);
+        return progressRepository.findAllByGameSession(gameSession).stream()
                 .map(HabitProgressResponse::from)
                 .toList();
     }
 
-    @Override
+        @Override
     public HabitProgressResponse findBySessionAndHabit(UUID sessionId, UUID habitId) {
         return HabitProgressResponse.from(getProgressOrThrow(sessionId, habitId));
     }
@@ -101,8 +101,8 @@ public class HabitProgressServiceImpl implements HabitProgressService {
                 .build());
     }
 
-    private HabitProgress getProgressOrThrow(UUID sessionId, UUID habitId) {
-        return progressRepository.findBySessionIdAndHabitId(sessionId, habitId)
+    private HabitProgress getProgressOrThrow(UUID gameSessionId, UUID habitId) {
+        return progressRepository.findByGameSessionIdAndHabitId(gameSessionId, habitId)
                 .orElseThrow(() -> new NotFoundException("Habit progress not found."));
     }
 

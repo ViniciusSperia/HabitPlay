@@ -1,7 +1,6 @@
 package com.habitplay.monster.dto.response;
 
 import com.habitplay.monster.model.Monster;
-import com.habitplay.monster.model.MonsterDifficulty;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,18 +12,18 @@ public class MonsterSummaryResponse {
 
     private UUID id;
     private String name;
-    private MonsterDifficulty difficulty;
+    private UUID difficultyId;
+    private String difficultyName;
     private int maxHealth;
-    private int damagePerHabit;
     private String imageUrl;
 
     public static MonsterSummaryResponse from(Monster monster) {
         return MonsterSummaryResponse.builder()
                 .id(monster.getId())
                 .name(monster.getName())
-                .difficulty(monster.getDifficulty())
+                .difficultyId(monster.getDifficulty().getId())
+                .difficultyName(monster.getDifficulty().getName())
                 .maxHealth(monster.getMaxHealth())
-                .damagePerHabit(monster.getDamagePerHabit())
                 .imageUrl(monster.getImageUrl())
                 .build();
     }

@@ -9,6 +9,7 @@ public record DefaultHabitResponse(
         String name,
         String description,
         String difficulty,
+        int damage,
         int target
 ) {
     public static DefaultHabitResponse from(DefaultHabit habit) {
@@ -16,7 +17,8 @@ public record DefaultHabitResponse(
                 habit.getId(),
                 habit.getName(),
                 habit.getDescription(),
-                habit.getDifficulty().name(),
+                habit.getDifficulty(),
+                habit.getDamage(),
                 habit.getTarget()
         );
     }

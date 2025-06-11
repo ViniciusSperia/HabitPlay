@@ -1,6 +1,9 @@
 package com.habitplay.habit.service.impl;
 
 import com.habitplay.config.exception.HabitNotFoundException;
+import com.habitplay.config.exception.ResourceNotFoundException;
+import com.habitplay.difficulty.model.Difficulty;
+import com.habitplay.difficulty.repository.DifficultyRepository;
 import com.habitplay.habit.dto.request.HabitRequest;
 import com.habitplay.habit.dto.response.AvailableHabitsResponse;
 import com.habitplay.habit.dto.response.HabitResponse;
@@ -27,19 +30,42 @@ public class HabitServiceImpl implements HabitService {
 
     private final HabitRepository habitRepository;
     private final DefaultHabitRepository defaultHabitRepository;
+    private final DifficultyRepository difficultyRepository;
 
     @Override
     public HabitResponse create(HabitRequest request) {
         User user = SecurityUtils.getCurrentUser();
 
+        Difficulty difficulty = difficultyRepository.findById(request.getDifficultyId())
+                .orElseThrow(() -> new ResourceNotFoundException("Difficulty not found"));
+
         Habit habit = Habit.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .difficulty(request.getDifficulty())
+                .difficulty(difficulty)
                 .target(request.getTarget())
+                .damage(request.getDamage())
                 .active(true)
                 .user(user)
                 .build();
+
+        return HabitResponse.from(habitRepository.save(habit));
+    }
+
+    @Override
+    @Transactional
+    public HabitResponse update(UUID id, HabitRequest request) {
+        Habit habit = findByIdAndValidateOwnership(id);
+
+        Difficulty difficulty = difficultyRepository.findById(request.getDifficultyId())
+                .orElseThrow(() -> new ResourceNotFoundException("Difficulty not found"));
+
+        habit.setName(request.getName());
+        habit.setDescription(request.getDescription());
+        habit.setDifficulty(difficulty);
+        habit.setDamage(request.getDamage());
+        habit.setTarget(request.getTarget());
+        habit.setUpdatedAt(LocalDateTime.now());
 
         return HabitResponse.from(habitRepository.save(habit));
     }
@@ -50,20 +76,6 @@ public class HabitServiceImpl implements HabitService {
         return habitRepository.findByUserAndActiveTrue(user).stream()
                 .map(HabitResponse::from)
                 .toList();
-    }
-
-    @Override
-    @Transactional
-    public HabitResponse update(UUID id, HabitRequest request) {
-        Habit habit = findByIdAndValidateOwnership(id);
-
-        habit.setName(request.getName());
-        habit.setDescription(request.getDescription());
-        habit.setDifficulty(request.getDifficulty());
-        habit.setTarget(request.getTarget());
-        habit.setUpdatedAt(LocalDateTime.now());
-
-        return HabitResponse.from(habitRepository.save(habit));
     }
 
     @Override

@@ -1,11 +1,10 @@
 package com.habitplay.monster.dto.request;
 
-import com.habitplay.monster.model.MonsterDifficulty;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
-
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -15,13 +14,10 @@ public class MonsterRequest {
     private String name;
 
     @NotNull
-    private MonsterDifficulty difficulty;
+    private UUID difficultyId;
 
     @Min(1)
     private Integer maxHealth;
-
-    @Min(0)
-    private int damagePerHabit;
 
     @NotBlank
     private String imageUrl;
